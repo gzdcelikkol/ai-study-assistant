@@ -2,7 +2,7 @@
 import chromadb
 from core.config import chroma_path
 
-chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+chroma_client = chromadb.PersistentClient(path=chroma_path)
 collection = chroma_client.get_or_create_collection(name="study_notes")
 
 

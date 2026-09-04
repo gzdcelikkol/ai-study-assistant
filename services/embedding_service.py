@@ -3,7 +3,7 @@
 from sentence_transformers import SentenceTransformer
 from core.config import embedding_model_name
 
-model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+model = SentenceTransformer(embedding_model_name)
 
 def get_embedding(text: str) -> list[float]:
     return model.encode(text).tolist()
