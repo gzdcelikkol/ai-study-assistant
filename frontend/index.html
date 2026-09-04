@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Assistant</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Markdown Renderer & Code Highlight -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    /* 3D Flip Card */
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+
+    /* Clean Markdown Styles */
+    .prose-content h1, .prose-content h2, .prose-content h3 {
+      font-weight: 600;
+      color: #f8fafc;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .prose-content ul, .prose-content ol {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0;
+    }
+    .prose-content ul { list-style-type: disc; }
+    .prose-content ol { list-style-type: decimal; }
+    .prose-content p { margin-bottom: 0.5rem; line-height: 1.6; }
+    .prose-content strong { color: #ffffff; }
+    .prose-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+    }
+    .prose-content th, .prose-content td {
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .prose-content th {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+    .prose-content code {
+      background-color: #1e293b;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body class="h-full bg-[#0b0f17] text-slate-200 flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-[#0f172a]/70 backdrop-blur-md px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-7 w-7 rounded-md bg-blue-600 flex items-center justify-center font-semibold text-white text-xs">
+        SA
+      </div>
+      <h1 class="text-sm font-semibold tracking-tight text-white">
+        Study Assistant
+      </h1>
+    </div>
+
+    <div>
+      <span id="docBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
+        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+        Ders notu eklenmedi
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Sidebar: Kontroller -->
+    <aside class="w-72 border-r border-slate-800/80 bg-[#0f172a]/40 flex flex-col p-4 space-y-5 overflow-y-auto custom-scrollbar">
+
+      <!-- Doküman Yükleme Kartı -->
+      <div class="space-y-2">
+        <label class="text-xs font-medium text-slate-400">Ders Notu</label>
+        <div
+          onclick="document.getElementById('pdfFile').click()"
+          class="border border-dashed border-slate-700 hover:border-slate-500 rounded-lg p-4 text-center cursor-pointer transition bg-slate-800/20 hover:bg-slate-800/40"
+        >
+          <input type="file" id="pdfFile" accept=".pdf" class="hidden" onchange="handleFileSelect()" />
+          <svg class="w-6 h-6 mx-auto text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <p id="fileNamePreview" class="text-xs text-slate-300 font-medium truncate">PDF Dosyası Seç</p>
+        </div>
+        <button
+          id="uploadBtn"
+          onclick="uploadPDF()"
+          disabled
+          class="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white text-xs font-medium py-2 rounded-md transition"
+        >
+          Notları Yükle
+        </button>
+      </div>
+
+      <!-- Tercihler -->
+      <div class="space-y-3 pt-2 border-t border-slate-800/80">
+        <label class="text-xs font-medium text-slate-400">Öğrenme Modeli</label>
+
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Anlatım Şekli</label>
+          <select id="modeSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-md text-xs p-2 text-slate-200 focus:outline-none focus:border-blue-500">
+            <option value="standard">Doğrudan Yanıtla</option>
+            <option value="socratic">Yönlendirici Soru Sor (Sokratik)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Zorluk Derecesi</label>
+          <select id="levelSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-md text-xs p-2 text-slate-200 focus:outline-none focus:border-blue-500">
+            <option value="intermediate">Üniversite / Normal</option>
+            <option value="eli5">En Basit Haliyle (ELI5)</option>
+            <option value="beginner">Başlangıç Seviyesi</option>
+            <option value="academic">Detaylı & Akademik</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Hızlı Araçlar -->
+      <div class="space-y-2 pt-2 border-t border-slate-800/80">
+        <label class="text-xs font-medium text-slate-400">Pratik Araçları</label>
+        <button
+          onclick="generateQuiz()"
+          class="w-full text-left px-3 py-2 rounded-md border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-850 text-xs text-slate-300 transition flex items-center gap-2"
+        >
+          <span>✏️</span> Deneme Sorusu Çıkar
+        </button>
+        <button
+          onclick="generateFlashcards()"
+          class="w-full text-left px-3 py-2 rounded-md border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-850 text-xs text-slate-300 transition flex items-center gap-2"
+        >
+          <span>🗂️</span> Çalışma Kartları Hazırla
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Chat & Studio -->
+    <main class="flex-1 flex flex-col bg-[#0b0f17] relative">
+
+      <!-- Mesajlar -->
+      <div id="chatBox" class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
+        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center p-6 space-y-2 max-w-sm mx-auto">
+          <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 mb-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+          </div>
+          <h2 class="text-sm font-semibold text-slate-200">Çalışma Alanın Hazır</h2>
+          <p class="text-xs text-slate-400">
+            Sol panelden ders notunu ekleyerek konuyu anlamak için soru sorabilir veya pratik yapabilirsin.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bilgi Kartları Paneli (Flashcards) -->
+      <div id="flashcardModal" class="hidden border-t border-slate-800 bg-[#0f172a] p-4">
+        <div class="flex items-center justify-between mb-3 max-w-4xl mx-auto">
+          <span class="text-xs font-medium text-slate-300">Hazırlanan Çalışma Kartları (Cevabı görmek için karta tıkla)</span>
+          <button onclick="document.getElementById('flashcardModal').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-200">Kapat</button>
+        </div>
+        <div id="flashcardDeck" class="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto"></div>
+      </div>
+
+      <!-- Input Alanı -->
+      <div class="p-4 border-t border-slate-800/80 bg-[#0f172a]/60">
+        <form onsubmit="sendMessage(event)" class="max-w-3xl mx-auto flex items-center gap-2">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Bir soru sor veya takıldığın bir noktayı yaz..."
+            class="flex-1 bg-slate-900 border border-slate-700/80 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 outline-none transition"
+          />
+          <button
+            type="submit"
+            id="sendBtn"
+            class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition"
+          >
+            Gönder
+          </button>
+        </form>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    const SESSION_ID = "session_" + Math.random().toString(36).substring(7);
+
+    marked.setOptions({
+      highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+      }
+    });
+
+    function handleFileSelect() {
+      const file = document.getElementById('pdfFile').files[0];
+      if (file) {
+        document.getElementById('fileNamePreview').innerText = file.name;
+        document.getElementById('uploadBtn').disabled = false;
+      }
+    }
+
+    async function uploadPDF() {
+      const file = document.getElementById('pdfFile').files[0];
+      const btn = document.getElementById('uploadBtn');
+      const badge = document.getElementById('docBadge');
+
+      btn.disabled = true;
+      btn.innerText = "Yükleniyor...";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch(`${API_BASE}/upload-pdf`, { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (res.ok) {
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ${data.file_name}`;
+          btn.innerText = "Yüklendi";
+          appendSystemNotice(`**${data.file_name}** başarıyla yüklendi. Artık bu doküman üzerinden sorular sorabilirsin.`);
+        } else {
+          alert("Hata: " + (data.detail || "Dosya yüklenemedi"));
+          btn.disabled = false;
+          btn.innerText = "Tekrar Dene";
+        }
+      } catch {
+        alert("Sunucuyla bağlantı kurulamadı.");
+        btn.disabled = false;
+        btn.innerText = "Tekrar Dene";
+      }
+    }
+
+    function removeEmptyState() {
+      const emptyState = document.getElementById("emptyState");
+      if (emptyState) emptyState.remove();
+    }
+
+    function appendSystemNotice(text) {
+      removeEmptyState();
+      const chatBox = document.getElementById("chatBox");
+      const div = document.createElement("div");
+      div.className = "text-center text-xs text-slate-400 my-2";
+      div.innerHTML = marked.parse(text);
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendMessage(role, text) {
+      removeEmptyState();
+      const chatBox = document.getElementById("chatBox");
+      const isUser = role === "user";
+
+      const wrap = document.createElement("div");
+      wrap.className = `flex ${isUser ? "justify-end" : "justify-start"}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = isUser
+        ? "bg-blue-600 text-white text-xs px-3.5 py-2.5 rounded-lg max-w-[75%]"
+        : "bg-slate-800/80 border border-slate-700/60 text-slate-200 text-xs px-4 py-3 rounded-lg max-w-[85%] prose-content";
+
+      if (isUser) {
+        bubble.innerText = text;
+      } else {
+        bubble.innerHTML = marked.parse(text);
+      }
+
+      wrap.appendChild(bubble);
+      chatBox.appendChild(wrap);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage("user", text);
+      input.value = "";
+
+      const mode = document.getElementById("modeSelect").value;
+      const level = document.getElementById("levelSelect").value;
+
+      try {
+        const res = await fetch(`${API_BASE}/question`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: text,
+            session_id: SESSION_ID,
+            mode: mode,
+            level: level
+          })
+        });
+        const data = await res.json();
+        appendMessage("assistant", data.answer || data.hata || "Cevap alınamadı.");
+      } catch {
+        appendMessage("assistant", "Sunucuya bağlanırken bir hata oluştu.");
+      }
+    }
+
+    async function generateQuiz() {
+      appendSystemNotice("Deneme sınavı sorusu hazırlanıyor...");
+      try {
+        const res = await fetch(`${API_BASE}/quiz/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: "Veri Yapıları" })
+        });
+        const data = await res.json();
+        appendMessage("assistant", `### Sınav Sorusu\n${data.generated_question}`);
+      } catch {
+        appendSystemNotice("Soru hazırlanamadı.");
+      }
+    }
+
+    async function generateFlashcards() {
+      appendSystemNotice("Çalışma kartları çıkarılıyor...");
+      try {
+        const res = await fetch(`${API_BASE}/flashcards/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: "Veri Yapıları", card_count: 3 })
+        });
+        const data = await res.json();
+
+        if (data.flashcards) {
+          const deck = document.getElementById("flashcardDeck");
+          deck.innerHTML = "";
+
+          data.flashcards.forEach((c) => {
+            const card = document.createElement("div");
+            card.className = "perspective-1000 h-24 cursor-pointer";
+            card.innerHTML = `
+              <div class="relative w-full h-full transform-style-3d transition-transform duration-300 rounded-md p-3 border border-slate-700 bg-slate-900 flex items-center justify-center text-center">
+                <div class="absolute inset-0 p-2 backface-hidden flex items-center justify-center text-xs font-medium text-slate-200">${c.front}</div>
+                <div class="absolute inset-0 p-2 backface-hidden rotate-y-180 bg-slate-800 rounded-md flex items-center justify-center text-[11px] text-slate-300">${c.back}</div>
+              </div>
+            `;
+            card.addEventListener('click', () => {
+              card.firstElementChild.classList.toggle('rotate-y-180');
+            });
+            deck.appendChild(card);
+          });
+
+          document.getElementById("flashcardModal").classList.remove("hidden");
+        }
+      } catch {
+        appendSystemNotice("Kartlar oluşturulamadı.");
+      }
+    }
+  </script>
+</body>
+</html>
