@@ -179,10 +179,3 @@ FastAPI otomatik Swagger dokümantasyonu sunar. Sunucu çalışırken [http://12
 
 ---
 
-## 🤝 Katkıda Bulunma
-
-1. Bu depoyu forklayın.
-2. Yeni bir özellik dalı oluşturun (`git checkout -b feature/yeni-ozellik`).
-3. Değişikliklerinizi commit'leyin (`git commit -m 'Yeni özellik eklendi'`).
-4. Dalınıza push'layın (`git push origin feature/yeni-ozellik`).
-5. Bir **Pull Request** açın.
