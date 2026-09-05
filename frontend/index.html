@@ -1,14 +1,44 @@
 <!DOCTYPE html>
-<html lang="tr" class="h-full">
+<html lang="tr" class="h-full bg-[#eef2f6]">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Study Assistant</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>AI Study Assistant</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04)',
+            'card': '0 10px 30px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03)',
+            'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
 
   <!-- Markdown Renderer & Code Highlight -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -16,198 +46,316 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 9999px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    /* 3D Flip Card */
+    /* 3D Flip Card Effect */
     .perspective-1000 { perspective: 1000px; }
     .transform-style-3d { transform-style: preserve-3d; }
     .backface-hidden { backface-visibility: hidden; }
     .rotate-y-180 { transform: rotateY(180deg); }
 
-    /* Clean Markdown Styles */
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Markdown Formatter Styles */
     .prose-content h1, .prose-content h2, .prose-content h3 {
-      font-weight: 600;
-      color: #f8fafc;
+      font-weight: 700;
+      color: #0f172a;
       margin-top: 1rem;
       margin-bottom: 0.5rem;
+    }
+    .prose-content h1 { font-size: 1.25rem; }
+    .prose-content h2 { font-size: 1.1rem; }
+    .prose-content h3 { font-size: 1rem; }
+    .prose-content p {
+      margin-bottom: 0.65rem;
+      line-height: 1.65;
+      color: #334155;
     }
     .prose-content ul, .prose-content ol {
       padding-left: 1.25rem;
       margin: 0.5rem 0;
+      color: #334155;
     }
     .prose-content ul { list-style-type: disc; }
     .prose-content ol { list-style-type: decimal; }
-    .prose-content p { margin-bottom: 0.5rem; line-height: 1.6; }
-    .prose-content strong { color: #ffffff; }
+    .prose-content li { margin-bottom: 0.25rem; }
+    .prose-content strong { color: #0f172a; font-weight: 600; }
+    .prose-content code:not(pre code) {
+      background-color: #f1f5f9;
+      color: #4338ca;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: 0.85em;
+      font-family: ui-monospace, monospace;
+    }
+    .prose-content pre {
+      background-color: #1e293b;
+      border-radius: 0.75rem;
+      padding: 0.875rem 1rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+    .prose-content blockquote {
+      border-left: 3px solid #6366f1;
+      padding-left: 0.75rem;
+      font-style: italic;
+      color: #475569;
+      margin: 0.5rem 0;
+    }
     .prose-content table {
       width: 100%;
       border-collapse: collapse;
-      margin: 1rem 0;
+      margin: 0.75rem 0;
       font-size: 0.85rem;
     }
     .prose-content th, .prose-content td {
-      border: 1px solid #334155;
-      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem 0.75rem;
       text-align: left;
     }
     .prose-content th {
-      background-color: #1e293b;
-      color: #e2e8f0;
+      background-color: #f8fafc;
+      font-weight: 600;
     }
-    .prose-content code {
-      background-color: #1e293b;
-      background-color: #f3f4f6;
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-size: 0.85em;
+
+    /* Pulse animation for thinking state */
+    @keyframes pulse-dot {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
     }
+    .dot1 { animation: pulse-dot 1.2s infinite ease-in-out 0s; }
+    .dot2 { animation: pulse-dot 1.2s infinite ease-in-out 0.2s; }
+    .dot3 { animation: pulse-dot 1.2s infinite ease-in-out 0.4s; }
   </style>
 </head>
-<body class="h-full bg-white text-gray-800 flex flex-col antialiased">
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased p-4 md:p-6 overflow-hidden max-w-[1550px] mx-auto">
 
-  <!-- Header -->
-  <header class="border-b border-gray-200 bg-white shadow px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-7 w-7 rounded-md bg-blue-600 flex items-center justify-center font-semibold text-white text-xs">
-        SA
+  <!-- ============================================================== -->
+  <!-- 1. ÜST KONTROL PANELİ (TOP BAR) - Görseldeki Tasarım            -->
+  <!-- ============================================================== -->
+  <header class="w-full bg-[#b8bec9] border border-slate-300/80 rounded-3xl p-4 sm:p-5 shadow-card transition-all mb-4 md:mb-5">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+      
+      <!-- Sütun 1: Nasıl yanıtlanmasını istersin? -->
+      <div class="md:col-span-4 flex flex-col items-center sm:items-start text-center sm:text-left">
+        <label for="modeSelect" class="text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+          <span>💡</span> Nasıl yanıtlanmasını istersin?
+        </label>
+        <div class="relative w-full">
+          <select id="modeSelect" class="w-full appearance-none bg-white text-slate-800 font-medium text-xs sm:text-sm rounded-2xl px-4 py-3 border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer pr-10 transition">
+            <option value="standard" selected>Doğrudan</option>
+            <option value="socratic">Sokratik (Yönlendirici Soru Sor)</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
       </div>
-      <h1 class="text-sm font-semibold tracking-tight text-gray-900">
-        Study Assistant
-      </h1>
-    </div>
 
-    <div>
-      <span id="docBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
-        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-        Ders notu eklenmedi
-      </span>
+      <!-- Sütun 2: Anlatım Zorluk Seviyesi -->
+      <div class="md:col-span-4 flex flex-col items-center sm:items-start text-center sm:text-left">
+        <label for="levelSelect" class="text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+          <span>🎯</span> Anlatım Zorluk Seviyesi
+        </label>
+        <div class="relative w-full">
+          <select id="levelSelect" class="w-full appearance-none bg-white text-slate-800 font-medium text-xs sm:text-sm rounded-2xl px-4 py-3 border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer pr-10 transition">
+            <option value="intermediate" selected>Normal</option>
+            <option value="eli5">En Basit Haliyle (ELI5)</option>
+            <option value="beginner">Başlangıç Seviyesi</option>
+            <option value="academic">İleri Düzey & Akademik</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sütun 3: Araçlar Butonları -->
+      <div class="md:col-span-4 flex flex-col items-center text-center">
+        <span class="text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+          Araçlar
+        </span>
+        <div class="w-full flex flex-col gap-2">
+          <button
+            onclick="promptQuizCreation()"
+            id="quizTriggerBtn"
+            class="w-full bg-white hover:bg-slate-50 text-slate-700 hover:text-brand-600 font-medium text-xs sm:text-sm py-2 px-4 rounded-full border border-slate-200 shadow-sm hover:shadow transition flex items-center justify-center gap-2"
+          >
+            <span>📝</span> Quiz soruları hazırla!
+          </button>
+          <button
+            onclick="promptFlashcardCreation()"
+            id="flashcardTriggerBtn"
+            class="w-full bg-white hover:bg-slate-50 text-slate-700 hover:text-brand-600 font-medium text-xs sm:text-sm py-2 px-4 rounded-full border border-slate-200 shadow-sm hover:shadow transition flex items-center justify-center gap-2"
+          >
+            <span>🗂️</span> Çalışma kartları hazırla!
+          </button>
+        </div>
+      </div>
+
     </div>
   </header>
 
-  <!-- Main Body -->
-  <div class="flex-1 flex overflow-hidden">
+  <!-- ============================================================== -->
+  <!-- 2. ANA ALAN: Sol PDF Kartı + Sağ Geniş Chat / Workspace         -->
+  <!-- ============================================================== -->
+  <div class="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 overflow-hidden">
 
-    <!-- Sidebar: Kontroller -->
-    <aside class="w-72 border-r border-gray-200 bg-gray-50 flex flex-col p-4 space-y-5 overflow-y-auto custom-scrollbar">
-
-      <!-- Doküman Yükleme Kartı -->
-      <div class="space-y-2">
-        <label class="text-xs font-medium text-slate-400">Ders Notu</label>
-        <div
-          onclick="document.getElementById('pdfFile').click()"
-          class="border border-dashed border-gray-300 hover:border-gray-500 rounded-lg p-4 text-center cursor-pointer transition bg-gray-100 hover:bg-gray-200"
-        >
-          <input type="file" id="pdfFile" accept=".pdf" class="hidden" onchange="handleFileSelect()" />
-          <svg class="w-6 h-6 mx-auto text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <p id="fileNamePreview" class="text-xs text-slate-300 font-medium truncate">PDF Dosyası Seç</p>
-        </div>
-        <button
-          id="uploadBtn"
-          onclick="uploadPDF()"
-          disabled
-          class="w-full mt-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white text-xs font-medium py-2 rounded-md transition"
-        >
-          Notları Yükle
-        </button>
-      </div>
-
-      <!-- Tercihler -->
-      <div class="space-y-3 pt-2 border-t border-slate-800/80">
-        <label class="text-xs font-medium text-gray-600">Öğrenme Modeli</label>
-
+    <!-- SOL PANEL: "PDF Yükle" Kartı (Görseldeki Sol Kutu) -->
+    <aside class="w-full md:w-64 lg:w-72 flex-shrink-0 flex flex-col">
+      <div class="bg-[#b8bec9] border border-slate-300/80 rounded-3xl p-4 sm:p-5 shadow-card flex flex-col justify-between h-auto md:h-full transition">
+        
+        <!-- Yükleme Butonu & Drag-Drop Bölgesi -->
         <div>
-          <label class="block text-[11px] text-gray-600 mb-1">Anlatım Şekli</label>
-          <select id="modeSelect" class="w-full bg-white border border-gray-300 rounded-md text-xs p-2 text-gray-800 focus:outline-none focus:border-indigo-500">
-            <option value="standard">Doğrudan Yanıtla</option>
-            <option value="socratic">Yönlendirici Soru Sor (Sokratik)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-[11px] text-gray-600 mb-1">Zorluk Derecesi</label>
-          <select id="levelSelect" class="w-full bg-white border border-gray-300 rounded-md text-xs p-2 text-gray-800 focus:outline-none focus:border-indigo-500">
-            <option value="intermediate">Üniversite / Normal</option>
-            <option value="eli5">En Basit Haliyle (ELI5)</option>
-            <option value="beginner">Başlangıç Seviyesi</option>
-            <option value="academic">Detaylı & Akademik</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Hızlı Araçlar -->
-      <div class="space-y-2 pt-2 border-t border-gray-200">
-        <label class="text-xs font-medium text-slate-400">Pratik Araçları</label>
-        <button
-          onclick="generateQuiz()"
-          class="w-full text-left px-3 py-2 rounded-md border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-850 text-xs text-slate-300 transition flex items-center gap-2"
-        >
-          <span>✏️</span> Deneme Sorusu Çıkar
-        </button>
-        <button
-          onclick="generateFlashcards()"
-          class="w-full text-left px-3 py-2 rounded-md border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-850 text-xs text-slate-300 transition flex items-center gap-2"
-        >
-          <span>🗂️</span> Çalışma Kartları Hazırla
-        </button>
-      </div>
-
-    </aside>
-
-    <!-- Chat & Studio -->
-    <main class="flex-1 flex flex-col bg-[#0b0f17] relative">
-
-      <!-- Mesajlar -->
-      <div id="chatBox" class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4 bg-white">
-        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center p-6 space-y-2 max-w-sm mx-auto">
-          <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-            </svg>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Ders Notu</span>
+            <span id="docStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/70 text-slate-600 border border-slate-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Yüklenmedi
+            </span>
           </div>
-          <h2 class="text-sm font-semibold text-gray-800">Çalışma Alanın Hazır</h2>
-          <p class="text-xs text-gray-600">
-            Sol panelden ders notunu ekleyerek konuyu anlamak için soru sorabilir veya pratik yapabilirsin.
+
+          <!-- Tıklanabilir & Sürükle-Bırak PDF Kutusu -->
+          <div
+            id="dropZone"
+            onclick="document.getElementById('pdfInput').click()"
+            class="group relative bg-white hover:bg-brand-50/50 border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-2xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2"
+          >
+            <input type="file" id="pdfInput" accept=".pdf" class="hidden" onchange="handleFileSelected(event)" />
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-brand-100/60 flex items-center justify-center text-slate-600 group-hover:text-brand-600 transition">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+            </div>
+            
+            <div class="text-center">
+              <span id="pdfButtonLabel" class="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-brand-600 transition block">
+                PDF Yükle
+              </span>
+              <p id="pdfSubLabel" class="text-[11px] text-slate-500 mt-0.5">
+                veya dosyayı buraya sürükle
+              </p>
+            </div>
+          </div>
+
+          <!-- Yükleme İşlemi Butonu & İlerleme -->
+          <button
+            id="startUploadBtn"
+            onclick="uploadCurrentPDF()"
+            disabled
+            class="w-full mt-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:hover:bg-brand-600 text-white text-xs sm:text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2"
+          >
+            <span>Ders Notunu İndeksle</span>
+          </button>
+        </div>
+
+        <!-- Aktif Doküman Bilgisi / İstatistik Kartı -->
+        <div id="docInfoCard" class="hidden mt-4 bg-white/90 rounded-2xl p-3.5 border border-slate-200/80 shadow-sm text-xs">
+          <div class="flex items-center gap-2 text-slate-700 font-semibold truncate mb-2">
+            <span class="text-red-500">📄</span>
+            <span id="uploadedDocName" class="truncate">notlar.pdf</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500">
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="block text-slate-400">Sayfa</span>
+              <span id="uploadedDocPages" class="font-bold text-slate-800 text-xs">0</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-lg text-center">
+              <span class="block text-slate-400">Parça (Chunk)</span>
+              <span id="uploadedDocChunks" class="font-bold text-slate-800 text-xs">0</span>
+            </div>
+          </div>
+          <button onclick="clearCurrentPDF()" class="mt-2 text-[11px] text-rose-500 hover:text-rose-600 font-medium block text-center w-full">
+            Belgeyi Değiştir
+          </button>
+        </div>
+
+        <!-- Yardım & İpucu -->
+        <div class="mt-4 pt-3 border-t border-slate-400/40 hidden md:block">
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            ✨ <strong>İpucu:</strong> PDF'inizi yükledikten sonra sorularınızı doğrudan sorabilir veya sağ üstteki araçlarla anında quiz ve kartlar üretebilirsiniz.
           </p>
         </div>
-      </div>
 
-      <!-- Bilgi Kartları Paneli (Flashcards) -->
-      <div id="flashcardModal" class="hidden border-t border-slate-800 bg-[#0f172a] p-4">
-        <div class="flex items-center justify-between mb-3 max-w-4xl mx-auto">
-          <span class="text-xs font-medium text-slate-300">Hazırlanan Çalışma Kartları (Cevabı görmek için karta tıkla)</span>
-          <button onclick="document.getElementById('flashcardModal').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-200">Kapat</button>
+      </div>
+    </aside>
+
+    <!-- SAĞ BÖLÜM: Geniş Sohbet & Çalışma Alanı (Görseldeki Büyük Gri Kutu) -->
+    <main class="flex-1 flex flex-col bg-[#b8bec9] border border-slate-300/80 rounded-3xl shadow-card overflow-hidden transition relative">
+      
+      <!-- Sohbet Mesajları Akış Alanı -->
+      <div id="chatStream" class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-4">
+        
+        <!-- Karşılama Boş Durum (Empty State) -->
+        <div id="emptyWelcomeState" class="h-full flex flex-col items-center justify-center text-center p-6 space-y-3 max-w-md mx-auto">
+          <div class="w-16 h-16 rounded-3xl bg-white shadow-soft flex items-center justify-center text-2xl text-brand-600">
+            🎓
+          </div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-800">
+            Çalışma Asistanına Hoş Geldin!
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Sol taraftan ders notunuzu (PDF) yükleyin veya üst kısımdan dilediğiniz yanıt modunu seçerek soru sormaya başlayın.
+          </p>
+          <div class="flex flex-wrap justify-center gap-2 pt-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-slate-600 shadow-sm border border-slate-200">
+              ⚡ Hızlı Semantik RAG
+            </span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-slate-600 shadow-sm border border-slate-200">
+              🏛️ Sokratik Metot
+            </span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-slate-600 shadow-sm border border-slate-200">
+              📊 Yapay Zeka Sınavı
+            </span>
+          </div>
         </div>
-        <div id="flashcardDeck" class="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-4xl mx-auto"></div>
+
       </div>
 
-      <!-- Input Alanı -->
-      <div class="p-4 border-t border-gray-200 bg-white">
-        <form onsubmit="sendMessage(event)" class="max-w-3xl mx-auto flex items-center gap-2">
+      <!-- Yazıyor / Düşünüyor İndikatörü (Gizli) -->
+      <div id="thinkingIndicator" class="hidden px-6 py-2 bg-transparent">
+        <div class="inline-flex items-center gap-2 bg-white/90 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 shadow-sm">
+          <span class="flex gap-1 items-center">
+            <span class="w-2 h-2 rounded-full bg-brand-500 dot1"></span>
+            <span class="w-2 h-2 rounded-full bg-brand-500 dot2"></span>
+            <span class="w-2 h-2 rounded-full bg-brand-500 dot3"></span>
+          </span>
+          <span>Ders notları taranıyor & yanıt hazırlanıyor...</span>
+        </div>
+      </div>
+
+      <!-- ALT GİRDİ PANELİ (Görseldeki Yuvarlak Alt Çubuk) -->
+      <div class="p-3 sm:p-5 bg-gradient-to-t from-[#b8bec9] to-transparent">
+        <form onsubmit="handleSendQuestion(event)" class="relative w-full flex items-center">
           <input
             type="text"
-            id="userInput"
+            id="chatInput"
             placeholder="Bir soru sor veya takıldığın bir noktayı yaz..."
-            class="flex-1 bg-white border border-gray-300 focus:border-indigo-500 rounded-lg px-3.5 py-2.5 text-xs text-gray-800 placeholder-gray-500 outline-none transition"
+            class="w-full bg-white text-slate-800 placeholder-slate-400 font-medium text-xs sm:text-sm rounded-full pl-5 pr-14 py-3.5 sm:py-4 border border-slate-300 shadow-card focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
           />
           <button
             type="submit"
             id="sendBtn"
-            class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition"
+            class="absolute right-2 sm:right-2.5 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-600 hover:bg-brand-500 text-white flex items-center justify-center shadow-md hover:shadow-lg transition transform active:scale-95"
+            title="Gönder"
           >
-            Gönder
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 19V5m-7 7l7-7 7 7"/>
+            </svg>
           </button>
         </form>
       </div>
@@ -216,177 +364,567 @@
 
   </div>
 
+  <!-- ============================================================== -->
+  <!-- 3. MODAL VE AÇILIR PENCERELER (Quiz & Flashcards & Anki)        -->
+  <!-- ============================================================== -->
+
+  <!-- Modal: Quiz Hazırlama ve Değerlendirme Modülü -->
+  <div id="quizModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto custom-scrollbar border border-slate-200">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base font-bold">📝</span>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Açık Uçlu Sınav / Quiz</h3>
+            <p class="text-xs text-slate-500">Notlarınıza göre özel soru üretilir ve cevabınız puanlanır.</p>
+          </div>
+        </div>
+        <button onclick="closeQuizModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Adım 1: Konu Belirleme -->
+      <div id="quizSetupStep" class="py-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Sınav Yapılacak Konu / Odak Alanı</label>
+          <input
+            type="text"
+            id="quizTopicInput"
+            value="Ders Notları Genel Tekrar"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+        <button
+          id="generateQuizBtn"
+          onclick="executeGenerateQuiz()"
+          class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs py-3 rounded-xl shadow-sm transition flex items-center justify-center gap-2"
+        >
+          <span>Soru Üret</span>
+        </button>
+      </div>
+
+      <!-- Adım 2: Soru ve Cevap Alanı -->
+      <div id="quizQuestionStep" class="hidden py-4 space-y-4">
+        <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4">
+          <span class="text-[11px] font-bold tracking-wider uppercase text-amber-700 block mb-1">Sınav Sorusu:</span>
+          <div id="generatedQuestionText" class="text-xs sm:text-sm font-semibold text-slate-800 whitespace-pre-line leading-relaxed"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Senin Yanıtın:</label>
+          <textarea
+            id="userQuizAnswer"
+            rows="4"
+            placeholder="Cevabınızı detaylıca açıklayın..."
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          ></textarea>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            id="evaluateBtn"
+            onclick="executeEvaluateAnswer()"
+            class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2"
+          >
+            <span>Cevabımı Değerlendir & Puanla</span>
+          </button>
+          <button
+            onclick="resetQuizModal()"
+            class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs py-2.5 rounded-xl transition"
+          >
+            Yeni Soru
+          </button>
+        </div>
+
+        <!-- Değerlendirme Sonucu -->
+        <div id="evaluationResultCard" class="hidden mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="font-bold text-xs text-slate-700">Değerlendirme Raporu</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700">AI Değerlendirmesi</span>
+          </div>
+          <div id="evaluationFeedbackContent" class="text-xs sm:text-sm text-slate-700 prose-content whitespace-pre-line leading-relaxed"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal: Çalışma Kartları (Flashcards) ve Anki İndirme -->
+  <div id="flashcardsModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto custom-scrollbar border border-slate-200">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-indigo-100 text-brand-600 flex items-center justify-center text-base font-bold">🗂️</span>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Çalışma Kartları (Flashcards)</h3>
+            <p class="text-xs text-slate-500">Aralıklı tekrar için 3D çevrilebilir kartlar veya Anki formatında indirme.</p>
+          </div>
+        </div>
+        <button onclick="closeFlashcardsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Ayar Çubuğu -->
+      <div class="py-4 flex flex-col sm:flex-row gap-3 items-end border-b border-slate-100">
+        <div class="flex-1 w-full">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Kart Çıkarılacak Konu</label>
+          <input
+            type="text"
+            id="flashcardTopicInput"
+            value="Önemli Tanımlar ve Kavramlar"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+        <div class="w-full sm:w-28">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Kart Sayısı</label>
+          <select id="flashcardCountSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="3">3 Kart</option>
+            <option value="5" selected>5 Kart</option>
+            <option value="8">8 Kart</option>
+          </select>
+        </div>
+        <button
+          id="generateFlashcardBtn"
+          onclick="executeGenerateFlashcards()"
+          class="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition whitespace-nowrap"
+        >
+          Kartları Üret
+        </button>
+      </div>
+
+      <!-- Kart Alanı -->
+      <div id="flashcardsDisplayArea" class="py-4">
+        <p id="noFlashcardsMsg" class="text-center text-xs text-slate-400 py-8">
+          Yukarıdaki butona basarak ders notlarından çalışma kartları üretebilirsiniz.
+        </p>
+
+        <!-- Kartların Listesi / Izgarası -->
+        <div id="flashcardsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 hidden">
+          <!-- Dinamik olarak doldurulur -->
+        </div>
+
+        <!-- Anki Dışa Aktar Butonu -->
+        <div id="ankiExportSection" class="hidden mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-500">Kartları popüler aralıklı tekrar uygulaması Anki'ye aktarabilirsiniz.</span>
+          <button
+            onclick="downloadAnkiFile()"
+            class="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5"
+          >
+            <span>📥</span> Anki Formatında İndir (.txt)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 4. JAVASCRIPT MOTORU VE API ENTEGRASYONU                        -->
+  <!-- ============================================================== -->
   <script>
     const API_BASE = "http://127.0.0.1:8000";
-    const SESSION_ID = "session_" + Math.random().toString(36).substring(7);
+    const SESSION_ID = "session_" + Math.random().toString(36).substring(2, 9);
+    let currentUploadedFile = null;
+    let currentQuizData = null;
+    let currentFlashcardsData = null;
 
+    // Marked.js Ayarları & Code Highlighting
     marked.setOptions({
       highlight: function(code, lang) {
         if (lang && hljs.getLanguage(lang)) {
           return hljs.highlight(code, { language: lang }).value;
         }
         return hljs.highlightAuto(code).value;
+      },
+      breaks: true
+    });
+
+    // -----------------------------------------------------------------
+    // PDF Sürükle-Bırak & Yükleme İşlemleri
+    // -----------------------------------------------------------------
+    const dropZone = document.getElementById('dropZone');
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('border-brand-500', 'bg-brand-50/60');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('border-brand-500', 'bg-brand-50/60');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleFileObj(files[0]);
       }
     });
 
-    function handleFileSelect() {
-      const file = document.getElementById('pdfFile').files[0];
-      if (file) {
-        document.getElementById('fileNamePreview').innerText = file.name;
-        document.getElementById('uploadBtn').disabled = false;
-      }
+    function handleFileSelected(e) {
+      const file = e.target.files[0];
+      if (file) handleFileObj(file);
     }
 
-    async function uploadPDF() {
-      const file = document.getElementById('pdfFile').files[0];
-      const btn = document.getElementById('uploadBtn');
-      const badge = document.getElementById('docBadge');
+    function handleFileObj(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert("Lütfen geçerli bir PDF dosyası seçin.");
+        return;
+      }
+      currentUploadedFile = file;
+      document.getElementById('pdfButtonLabel').innerText = file.name;
+      document.getElementById('pdfSubLabel').innerText = `${(file.size / (1024 * 1024)).toFixed(2)} MB • Yüklemeye hazır`;
+      document.getElementById('startUploadBtn').disabled = false;
+      document.getElementById('quizTopicInput').value = file.name.replace(/\.[^/.]+$/, "");
+      document.getElementById('flashcardTopicInput').value = file.name.replace(/\.[^/.]+$/, "");
+    }
 
+    async function uploadCurrentPDF() {
+      if (!currentUploadedFile) return;
+
+      const btn = document.getElementById('startUploadBtn');
+      const badge = document.getElementById('docStatusBadge');
       btn.disabled = true;
-      btn.innerText = "Yükleniyor...";
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> İndeksleniyor...`;
 
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", currentUploadedFile);
 
       try {
-        const res = await fetch(`${API_BASE}/upload-pdf`, { method: "POST", body: formData });
+        const res = await fetch(`${API_BASE}/upload-pdf`, {
+          method: "POST",
+          body: formData
+        });
         const data = await res.json();
 
         if (res.ok) {
-          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
-          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ${data.file_name}`;
-          btn.innerText = "Yüklendi";
-          appendSystemNotice(`**${data.file_name}** başarıyla yüklendi. Artık bu doküman üzerinden sorular sorabilirsin.`);
+          badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Yüklendi`;
+          
+          btn.innerHTML = `✓ İndekslendi`;
+          btn.classList.replace('bg-brand-600', 'bg-emerald-600');
+          btn.classList.replace('hover:bg-brand-500', 'hover:bg-emerald-500');
+
+          // Bilgi Kartını Aç
+          document.getElementById('docInfoCard').classList.remove('hidden');
+          document.getElementById('uploadedDocName').innerText = data.file_name || currentUploadedFile.name;
+          document.getElementById('uploadedDocPages').innerText = data.page_count || "-";
+          document.getElementById('uploadedDocChunks').innerText = data.saved_chunks || "-";
+
+          appendSystemMessage(`📄 **${data.file_name}** başarıyla yüklendi (${data.page_count} sayfa, ${data.saved_chunks} vektör parçası). Artık bu ders notu üzerinden sorular sorabilir, quiz veya çalışma kartları hazırlayabilirsiniz.`);
         } else {
-          alert("Hata: " + (data.detail || "Dosya yüklenemedi"));
+          alert("Yükleme hatası: " + (data.detail || "Sunucu hatası"));
           btn.disabled = false;
           btn.innerText = "Tekrar Dene";
         }
-      } catch {
-        alert("Sunucuyla bağlantı kurulamadı.");
+      } catch (err) {
+        console.error(err);
+        alert("Sunucuya bağlanırken hata oluştu. Backend'in çalıştığından (http://127.0.0.1:8000) emin olun.");
         btn.disabled = false;
         btn.innerText = "Tekrar Dene";
       }
     }
 
-    function removeEmptyState() {
-      const emptyState = document.getElementById("emptyState");
-      if (emptyState) emptyState.remove();
+    function clearCurrentPDF() {
+      currentUploadedFile = null;
+      document.getElementById('pdfInput').value = "";
+      document.getElementById('pdfButtonLabel').innerText = "PDF Yükle";
+      document.getElementById('pdfSubLabel').innerText = "veya dosyayı buraya sürükle";
+      document.getElementById('startUploadBtn').disabled = true;
+      document.getElementById('startUploadBtn').innerHTML = "Ders Notunu İndeksle";
+      document.getElementById('startUploadBtn').className = "w-full mt-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:hover:bg-brand-600 text-white text-xs sm:text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2";
+      document.getElementById('docInfoCard').classList.add('hidden');
+      document.getElementById('docStatusBadge').className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/70 text-slate-600 border border-slate-200";
+      document.getElementById('docStatusBadge').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Yüklenmedi`;
     }
 
-    function appendSystemNotice(text) {
-      removeEmptyState();
-      const chatBox = document.getElementById("chatBox");
-      const div = document.createElement("div");
-      div.className = "text-center text-xs text-slate-400 my-2";
-      div.innerHTML = marked.parse(text);
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // -----------------------------------------------------------------
+    // Soru Sorma & Chat Akışı
+    // -----------------------------------------------------------------
+    function removeEmptyWelcome() {
+      const welcome = document.getElementById("emptyWelcomeState");
+      if (welcome) welcome.remove();
     }
 
-    function appendMessage(role, text) {
-      removeEmptyState();
-      const chatBox = document.getElementById("chatBox");
-      const isUser = role === "user";
-
+    function appendSystemMessage(markdownText) {
+      removeEmptyWelcome();
+      const chatStream = document.getElementById("chatStream");
       const wrap = document.createElement("div");
-      wrap.className = `flex ${isUser ? "justify-end" : "justify-start"}`;
+      wrap.className = "flex justify-center my-3";
+      
+      const box = document.createElement("div");
+      box.className = "bg-white/90 border border-slate-200/90 text-slate-600 text-xs px-4 py-2.5 rounded-2xl shadow-sm max-w-[85%] prose-content text-center";
+      box.innerHTML = marked.parse(markdownText);
+      wrap.appendChild(box);
+      chatStream.appendChild(wrap);
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    function appendUserMessage(text) {
+      removeEmptyWelcome();
+      const chatStream = document.getElementById("chatStream");
+      const wrap = document.createElement("div");
+      wrap.className = "flex justify-end my-2";
 
       const bubble = document.createElement("div");
-      bubble.className = isUser
-        ? "bg-indigo-600 text-white text-xs px-3.5 py-2.5 rounded-lg max-w-[75%]"
-        : "bg-gray-100 border border-gray-300 text-gray-800 text-xs px-4 py-3 rounded-lg max-w-[85%] prose-content";
-
-      if (isUser) {
-        bubble.innerText = text;
-      } else {
-        bubble.innerHTML = marked.parse(text);
-      }
+      bubble.className = "bg-brand-600 text-white font-medium text-xs sm:text-sm px-4 py-3 rounded-2xl rounded-br-none shadow-md max-w-[80%] break-words";
+      bubble.innerText = text;
 
       wrap.appendChild(bubble);
-      chatBox.appendChild(wrap);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      chatStream.appendChild(wrap);
+      chatStream.scrollTop = chatStream.scrollHeight;
     }
 
-    async function sendMessage(e) {
-      e.preventDefault();
-      const input = document.getElementById("userInput");
-      const text = input.value.trim();
-      if (!text) return;
+    function appendAssistantMessage(markdownText) {
+      removeEmptyWelcome();
+      const chatStream = document.getElementById("chatStream");
+      const wrap = document.createElement("div");
+      wrap.className = "flex justify-start my-2";
 
-      appendMessage("user", text);
+      const bubble = document.createElement("div");
+      bubble.className = "bg-white border border-slate-200 text-slate-800 text-xs sm:text-sm px-5 py-4 rounded-2xl rounded-bl-none shadow-sm max-w-[88%] prose-content break-words";
+      bubble.innerHTML = marked.parse(markdownText);
+
+      wrap.appendChild(bubble);
+      chatStream.appendChild(wrap);
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    async function handleSendQuestion(e) {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const question = input.value.trim();
+      if (!question) return;
+
+      appendUserMessage(question);
       input.value = "";
 
       const mode = document.getElementById("modeSelect").value;
       const level = document.getElementById("levelSelect").value;
+      const indicator = document.getElementById("thinkingIndicator");
+      indicator.classList.remove("hidden");
 
       try {
         const res = await fetch(`${API_BASE}/question`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            question: text,
+            question: question,
             session_id: SESSION_ID,
             mode: mode,
             level: level
           })
         });
+
+        indicator.classList.add("hidden");
         const data = await res.json();
-        appendMessage("assistant", data.answer || data.hata || "Cevap alınamadı.");
-      } catch {
-        appendMessage("assistant", "Sunucuya bağlanırken bir hata oluştu.");
+
+        if (res.ok && data.answer) {
+          appendAssistantMessage(data.answer);
+        } else {
+          appendAssistantMessage(`⚠️ **Hata:** ${data.error || data.hata || "Yanıt alınamadı."}`);
+        }
+      } catch (err) {
+        indicator.classList.add("hidden");
+        appendAssistantMessage("⚠️ **Bağlantı Hatası:** Sunucuya ulaşılamadı. Lütfen `main.py` backend servisinin çalıştığından emin olun.");
       }
     }
 
-    async function generateQuiz() {
-      appendSystemNotice("Deneme sınavı sorusu hazırlanıyor...");
+    // -----------------------------------------------------------------
+    // QUIZ / SINAV MODÜLÜ
+    // -----------------------------------------------------------------
+    function promptQuizCreation() {
+      document.getElementById('quizModal').classList.remove('hidden');
+    }
+
+    function closeQuizModal() {
+      document.getElementById('quizModal').classList.add('hidden');
+    }
+
+    function resetQuizModal() {
+      document.getElementById('quizSetupStep').classList.remove('hidden');
+      document.getElementById('quizQuestionStep').classList.add('hidden');
+      document.getElementById('evaluationResultCard').classList.add('hidden');
+      document.getElementById('userQuizAnswer').value = '';
+    }
+
+    async function executeGenerateQuiz() {
+      const topic = document.getElementById('quizTopicInput').value.trim() || "Genel Tekrar";
+      const btn = document.getElementById('generateQuizBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Soru Hazırlanıyor...`;
+
       try {
         const res = await fetch(`${API_BASE}/quiz/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic: "Veri Yapıları" })
+          body: JSON.stringify({ topic: topic })
         });
         const data = await res.json();
-        appendMessage("assistant", `### Sınav Sorusu\n${data.generated_question}`);
-      } catch {
-        appendSystemNotice("Soru hazırlanamadı.");
+        btn.disabled = false;
+        btn.innerHTML = `<span>Soru Üret</span>`;
+
+        if (data.generated_question) {
+          currentQuizData = data;
+          document.getElementById('quizSetupStep').classList.add('hidden');
+          document.getElementById('quizQuestionStep').classList.remove('hidden');
+          document.getElementById('generatedQuestionText').innerText = data.generated_question;
+          document.getElementById('evaluationResultCard').classList.add('hidden');
+          document.getElementById('userQuizAnswer').value = "";
+        } else {
+          alert("Soru üretilemedi: " + (data.hata || "Bilinmeyen hata"));
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Soru Üret</span>`;
+        alert("Sunucuyla bağlantı kurulamadı.");
       }
     }
 
-    async function generateFlashcards() {
-      appendSystemNotice("Çalışma kartları çıkarılıyor...");
+    async function executeEvaluateAnswer() {
+      const userAnswer = document.getElementById('userQuizAnswer').value.trim();
+      if (!userAnswer) {
+        alert("Lütfen değerlendirilmesi için bir cevap yazın.");
+        return;
+      }
+
+      const btn = document.getElementById('evaluateBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Değerlendiriliyor...`;
+
+      try {
+        const res = await fetch(`${API_BASE}/quiz/evaluate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: currentQuizData.generated_question,
+            user_answer: userAnswer
+          })
+        });
+        const data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = `<span>Cevabımı Değerlendir & Puanla</span>`;
+
+        if (data.feedback) {
+          const card = document.getElementById('evaluationResultCard');
+          card.classList.remove('hidden');
+          document.getElementById('evaluationFeedbackContent').innerHTML = marked.parse(data.feedback);
+        } else {
+          alert("Değerlendirme yapılamadı: " + (data.hata || "Hata oluştu"));
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Cevabımı Değerlendir & Puanla</span>`;
+        alert("Sunucuya bağlanılamadı.");
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // FLASHCARDS & ANKI MODÜLÜ
+    // -----------------------------------------------------------------
+    function promptFlashcardCreation() {
+      document.getElementById('flashcardsModal').classList.remove('hidden');
+    }
+
+    function closeFlashcardsModal() {
+      document.getElementById('flashcardsModal').classList.add('hidden');
+    }
+
+    async function executeGenerateFlashcards() {
+      const topic = document.getElementById('flashcardTopicInput').value.trim() || "Önemli Kavramlar";
+      const count = parseInt(document.getElementById('flashcardCountSelect').value, 10) || 5;
+      const btn = document.getElementById('generateFlashcardBtn');
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Üretiliyor...`;
+
       try {
         const res = await fetch(`${API_BASE}/flashcards/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic: "Veri Yapıları", card_count: 3 })
+          body: JSON.stringify({ topic: topic, card_count: count })
         });
         const data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = `Kartları Üret`;
 
-        if (data.flashcards) {
-          const deck = document.getElementById("flashcardDeck");
-          deck.innerHTML = "";
+        if (data.flashcards && data.flashcards.length > 0) {
+          currentFlashcardsData = data;
+          document.getElementById('noFlashcardsMsg').classList.add('hidden');
+          const grid = document.getElementById('flashcardsGrid');
+          grid.innerHTML = '';
+          grid.classList.remove('hidden');
 
-          data.flashcards.forEach((c) => {
-            const card = document.createElement("div");
-            card.className = "perspective-1000 h-24 cursor-pointer";
-            card.innerHTML = `
-              <div class="relative w-full h-full transform-style-3d transition-transform duration-300 rounded-md p-3 border border-slate-700 bg-slate-900 flex items-center justify-center text-center">
-                <div class="absolute inset-0 p-2 backface-hidden flex items-center justify-center text-xs font-medium text-slate-200">${c.front}</div>
-                <div class="absolute inset-0 p-2 backface-hidden rotate-y-180 bg-slate-800 rounded-md flex items-center justify-center text-[11px] text-slate-300">${c.back}</div>
+          data.flashcards.forEach((item, idx) => {
+            const cardWrap = document.createElement('div');
+            cardWrap.className = 'perspective-1000 h-36 cursor-pointer select-none';
+            cardWrap.innerHTML = `
+              <div class="card-inner relative w-full h-full transform-style-3d transition-transform duration-500 rounded-2xl shadow-sm border border-slate-200">
+                <!-- Ön Yüz -->
+                <div class="absolute inset-0 backface-hidden bg-white hover:bg-slate-50 rounded-2xl p-4 flex flex-col justify-between text-center border border-slate-200 shadow-sm">
+                  <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                    <span>KART #${idx + 1}</span>
+                    <span>ÇEVİR 🔄</span>
+                  </div>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug">${item.front}</p>
+                  <div class="text-[10px] text-brand-600 font-medium">Cevap için tıkla</div>
+                </div>
+                <!-- Arka Yüz -->
+                <div class="absolute inset-0 backface-hidden rotate-y-180 bg-brand-600 text-white rounded-2xl p-4 flex flex-col justify-between text-center shadow-md">
+                  <div class="flex items-center justify-between text-[10px] font-bold text-brand-200">
+                    <span>CEVAP / AÇIKLAMA</span>
+                    <span>GERİ DÖN 🔄</span>
+                  </div>
+                  <p class="text-xs sm:text-sm font-medium leading-relaxed">${item.back}</p>
+                  <div class="text-[10px] text-brand-200">Ön yüz için tekrar tıkla</div>
+                </div>
               </div>
             `;
-            card.addEventListener('click', () => {
-              card.firstElementChild.classList.toggle('rotate-y-180');
+            const inner = cardWrap.querySelector('.card-inner');
+            cardWrap.addEventListener('click', () => {
+              inner.classList.toggle('rotate-y-180');
             });
-            deck.appendChild(card);
+            grid.appendChild(cardWrap);
           });
 
-          document.getElementById("flashcardModal").classList.remove("hidden");
+          if (data.anki_csv_format) {
+            document.getElementById('ankiExportSection').classList.remove('hidden');
+          }
+        } else {
+          alert("Flashcard üretilemedi veya boş sonuç döndü.");
         }
-      } catch {
-        appendSystemNotice("Kartlar oluşturulamadı.");
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `Kartları Üret`;
+        alert("Sunucuya bağlanılamadı.");
       }
+    }
+
+    function downloadAnkiFile() {
+      if (!currentFlashcardsData || !currentFlashcardsData.anki_csv_format) {
+        alert("İndirilecek Anki kart verisi bulunamadı.");
+        return;
+      }
+      const blob = new Blob([currentFlashcardsData.anki_csv_format], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `anki_${(currentFlashcardsData.topic || 'flashcards').replace(/\s+/g, '_')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
