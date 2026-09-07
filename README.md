@@ -10,6 +10,8 @@ Sadece düz cevaplar vermekle kalmaz; **Sokratik yöntemle** sizi yönlendirir, 
 
 - 📄 **PDF Yükleme & Otomatik Parçalama (Chunking):** Ders notlarınız sayfalarına ayrılır ve işlenebilir parçalara bölünür.
 - 🧠 **Semantik Arama (ChromaDB + Sentence-Transformers):** Notlarınız matematiksel vektörlere (`all-MiniLM-L6-v2`) dönüştürülür. Bir soru sorduğunuzda sadece anahtar kelimeler değil, **anlamca en yakın** ders notu kısımları bulunup modele verilir.
+- 🛡️ **Self-RAG & Halüsinasyon Denetimi (Evaluator Service):** Modelin ders notları dışından uydurma bilgi üretmesini engeller. Üretilen her yanıt, akademik bir denetçi servisi (`verify_groundedness`) tarafından taranarak **Sadakat Skoru (Faithfulness Score)**, **Notlara Dayalı Olma (Groundedness)** ve **Halüsinasyon Tespiti** açılarından puanlanır.
+- 🔄 **Self-Correction (Otomatik Düzeltme):** Sadakat skoru %60'ın altına düşerse sistem otomatik olarak araya girer; tespit edilen dayanaksız iddialar düzeltilerek cevap yalnızca ders notundaki kanıtlarla yeniden yazılır.
 - 💡 **Öğrenme Modları:**
   - **Standart Mod:** Ders notlarındaki bilgilere sadık kalarak sorunuzu doğrudan ve net bir şekilde açıklar.
   - **Sokratik Mod:** Asla hazır cevap vermez! İpuçları ve karşı sorularla cevabı sizin bulmanızı sağlar.
@@ -21,7 +23,7 @@ Sadece düz cevaplar vermekle kalmaz; **Sokratik yöntemle** sizi yönlendirir, 
 - 📝 **Otomatik Quiz & Yapıcı Değerlendirme:** Notlarınızdan 1 adet açık uçlu sınav sorusu üretir. Verdiğiniz cevabı 100 üzerinden puanlayıp doğru noktaları, eksikleri ve ideal cevabı raporlar.
 - 🗂️ **Flashcard & Anki Desteği:** Notlardan soru-cevap kartları çıkarır. İster arayüzde kartları çevirerek çalışabilir, isterseniz popüler aralıklı tekrar uygulaması **Anki**'ye aktarabilirsiniz.
 - 💬 **Sohbet Hafızası (Memory):** Oturum boyunca sorduğunuz önceki soruları ve asistanın yanıtlarını hatırlar.
-- 🖥️ **Modern Kullanıcı Arayüzü:** Tarayıcı üzerinden kolayca kullanılabilen temiz ve responsive web paneli.
+- 🖥️ **Modern Kullanıcı Arayüzü:** Tarayıcı üzerinden kolayca kullanılabilen temiz, şeffaf doğrulama raporlu ve responsive web paneli.
 
 ---
 
@@ -122,26 +124,27 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ai-study-assistant/
 │
 ├── core/
-│   ├── config.py                 # Ortam değişkenleri ve model ayarları
+│   ├── config.py                 # Ortam değişkenleri, Groq istemcisi ve model ayarları
 │   └── __init__.py
 │
 ├── frontend/
-│   └── index.html                # Modern Web arayüzü (Tailwind CSS tabanlı)
+│   └── index.html                # Modern Web arayüzü (Tailwind CSS, Self-RAG denetim paneli)
 │
 ├── schemas/                      # İstek ve yanıt Pydantic şablonları
 │   ├── flashcard.py              # Flashcard modelleri
-│   ├── question.py               # Soru-cevap modelleri & zorluk seviyeleri
+│   ├── question.py               # Soru-cevap modelleri, seviyeler & VerificationResult
 │   └── quiz.py                   # Quiz üretme ve değerlendirme modelleri
 │
 ├── services/                     # İş mantığı ve servisler
 │   ├── embedding_service.py      # Metin vektörleştirme (Sentence-Transformers)
+│   ├── evaluator_service.py      # Halüsinasyon tespiti ve Self-RAG sadakat denetimi
 │   ├── memory_service.py         # Sohbet geçmişi (Session memory)
 │   ├── pdf_service.py            # PDF okuma ve metin parçalama (Chunking)
 │   └── vector_db.py              # ChromaDB vektör veritabanı işlemleri
 │
 ├── .env.example                  # Ortam değişkeni şablonu
 ├── .gitignore                    # Git tarafından takip edilmeyecek dosyalar
-├── main.py                       # FastAPI ana uygulama ve endpoint'ler
+├── main.py                       # FastAPI ana uygulama, Self-Correction ve endpoint'ler
 ├── README.md                     # Proje dokümantasyonu
 └── requirements.txt              # Proje bağımlılıkları listesi
 ```
@@ -156,10 +159,44 @@ FastAPI otomatik Swagger dokümantasyonu sunar. Sunucu çalışırken [http://12
 | :--- | :--- | :--- |
 | `GET` | `/` | Asistan karşılama ve sağlık kontrolü. |
 | `POST` | `/upload-pdf` | PDF yükler, metin parçalarını vektörleştirip ChromaDB'ye kaydeder. |
-| `POST` | `/question` | İlgili not parçalarını bularak Sokratik veya Standart modda yanıt üretir. |
+| `POST` | `/question` | İlgili not parçalarını bularak yanıt üretir; Self-RAG ile sadakat/halüsinasyon denetimi ve gerekiyorsa Self-Correction uygulayıp `QuestionResponse` döner. |
 | `POST` | `/quiz/generate` | Notlardan açık uçlu 1 sınav sorusu hazırlar. |
 | `POST` | `/quiz/evaluate` | Öğrencinin sınav cevabını değerlendirir ve 100 üzerinden not verir. |
 | `POST` | `/flashcards/generate` | Aralıklı tekrar için soru-cevap kartları ve Anki CSV formatı üretir. |
+
+---
+
+## 🛡️ Self-RAG & Halüsinasyon Önleme Mekanizması
+
+Modelin ders notu dışından uydurma/yanlış bilgi üretmesini engellemek için `/question` endpoint'inde **5 aşamalı Self-RAG pipeline'ı** çalışır:
+
+1. **Semantik Arama (RAG):** Soru vektörleştirilir (`all-MiniLM-L6-v2`) ve ChromaDB üzerinden en ilgili 3 metin parçası (`top_k=3`) çıkarılarak bağlam (`baglam`) oluşturulur.
+2. **İlk Cevap Üretimi:** Seçilen mod (Standart / Sokratik) ve zorluk seviyesi direktifi ile LLM (`openai/gpt-oss-20b`) ilk cevabı üretir.
+3. **Akademik Denetçi (`services/evaluator_service.py`):**
+   - Üretilen cevap ile referans ders notu bağımsız bir prompt ile değerlendirilir.
+   - Denetçi, cevabın bağlama sadakatini (`faithfulness_score`), not dışından uydurulan iddiaları (`unsupported_claims`) ve halüsinasyon riskini (`hallucination_detected`) JSON formatında raporlar.
+4. **Self-Correction (Otomatik İyileştirme Döngüsü):**
+   - Eğer sadakat skoru `< 0.60` ise ve mod Sokratik değilse sistem cevabı doğrudan kullanıcıya iletmez.
+   - Tespit edilen gerekçe ve desteklenmeyen iddialar kullanılarak modele bir düzeltme istemi verilir: *"Cevabı YALNIZCA aşağıdaki ders notunda geçen kanıtlanabilir gerçeklere dayanarak tekrar yaz"*.
+   - Yeniden üretilen güvenilir cevap kullanıcıya sunulur ve denetim gerekçesinde düzeltme yapıldığı belirtilir.
+5. **İstemci Gösterimi:** Frontend, cevabın altında renk kodlu bir **Denetim Raporu** rozeti ve açılır detay kartı göstererek sadakat skorunu, halüsinasyon durumunu ve denetçi gerekçesini şeffaf biçimde sergiler.
+
+**`/question` Yanıt Örneği:**
+```json
+{
+  "session_id": "default_student",
+  "mode": "standard",
+  "level": "intermediate",
+  "question": "Quick Sort algoritmasının en kötü durum karmaşıklığı nedir?",
+  "answer": "Quick Sort en kötü durumda O(n^2) karmaşıklıkla çalışır...",
+  "verification": {
+    "faithfulness_score": 0.95,
+    "is_grounded": true,
+    "hallucination_detected": false,
+    "reasoning": "Ders notlarındaki ilgili kısımla birebir tutarlıdır."
+  }
+}
+```
 
 ---
 
