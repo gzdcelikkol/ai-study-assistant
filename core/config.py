@@ -9,4 +9,5 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 embedding_model_name = "all-MiniLM-L6-v2"
 chroma_path = "./chroma_db"
 llm_model_name = "openai/gpt-oss-20b"
+groq_client = Groq(api_key=groq_api_key)
 
