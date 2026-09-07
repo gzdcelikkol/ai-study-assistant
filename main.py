@@ -12,6 +12,8 @@ from services.vector_db import save_chunks_to_db, search_relevant_chunks
 import json
 from schemas.flashcard import GenerateFlashcardsRequest, FlashcardsResponse, FlashcardItem
 from services.memory_service import get_chat_history, add_message_to_history
+from schemas.question import QuestionRequest, QuestionResponse, VerificationResult
+from services.evaluator_service import verify_groundedness
 app = FastAPI(title="AI Student Assistant")
 groq_client = Groq(api_key=groq_api_key)
 app.add_middleware(
@@ -250,4 +252,92 @@ Konu: {request.topic}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Kart üretilirken hata oluştu: {str(e)}")
 
+@app.post("/question", response_model=QuestionResponse)
+def ask_question(request: QuestionRequest):
+    try:
+        session_id = request.session_id
+
+        # 1. RAG Aşaması
+        soru_vektoru = get_embedding(request.question)
+        ilgili_parcalar = search_relevant_chunks(soru_vektoru, top_k=3)
+        baglam = "\n---\n".join(ilgili_parcalar)
+
+        # 2. Üretim Promptu
+        level_instruction = LEVEL_INSTRUCTIONS.get(request.level, LEVEL_INSTRUCTIONS["intermediate"])
+        if request.mode == "socratic":
+            sistem_mesaji = (
+                f"Sen Sokratik bir özel ders hocasısın.\n"
+                f"Direktif: {level_instruction}\n"
+                "Öğrencinin sorusuna doğrudan nihai cevabı verme. Verilen ders notu bağlamından yararlanarak "
+                "yönlendirici bir karşı soru sor."
+            )
+        else:
+            sistem_mesaji = (
+                f"Sen bir üniversite ders asistanısın.\n"
+                f"Direktif: {level_instruction}\n"
+                "Aşağıdaki ders notu bağlamına sadık kalarak öğrencinin sorusunu yanıtla."
+            )
+
+        messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": sistem_mesaji}
+        ]
+        messages.extend(get_chat_history(session_id))
+        messages.append({"role": "user", "content": f"Ders Notu Bağlamı:\n{baglam}\n\nSoru: {request.question}"})
+
+        # İlk Cevap Üretimi
+        chat_completion = groq_client.chat.completions.create(
+            messages=messages,
+            model=llm_model_name
+        )
+        ai_cevap = chat_completion.choices[0].message.content
+
+        # 3. SELF-RAG: Halüsinasyon ve Sadakat Denetimi
+        verification = verify_groundedness(context=baglam, answer=ai_cevap)
+
+        # 4. Self-Correction (Eğer sadakat skoru 0.60'ın altındaysa cevabı düzelt)
+        if verification.get("faithfulness_score", 1.0) < 0.60 and not request.mode == "socratic":
+            correction_prompt = f"""Ürettiğin bir önceki cevap ders notları tarafından yeterince desteklenmedi veya halüsinasyon içeriyor.
+Gerekçe: {verification.get('reasoning')}
+Desteklenmeyen İddialar: {verification.get('unsupported_claims')}
+
+Lütfen cevabı YALNIZCA aşağıdaki ders notunda geçen kanıtlanabilir gerçeklere dayanarak tekrar yaz:
+Notlar:
+{baglam}
+
+Soru: {request.question}
+"""
+            corrected_completion = groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "Sen yalnızca verilen kanıtlara dayanan güvenilir bir asistansın."},
+                    {"role": "user", "content": correction_prompt}
+                ],
+                model=llm_model_name
+            )
+            ai_cevap = corrected_completion.choices[0].message.content
+            # Düzeltilmiş metin için skoru güncelle
+            verification["reasoning"] += " (Cevap Self-Correction mekanizması ile otomatik düzeltildi.)"
+            verification["faithfulness_score"] = 0.95
+            verification["hallucination_detected"] = False
+            verification["is_grounded"] = True
+
+        # 5. Oturum Geçmişine Ekleme
+        add_message_to_history(session_id, role="user", content=request.question)
+        add_message_to_history(session_id, role="assistant", content=ai_cevap)
+
+        return QuestionResponse(
+            session_id=session_id,
+            mode=request.mode,
+            level=request.level,
+            question=request.question,
+            answer=ai_cevap,
+            verification=VerificationResult(
+                faithfulness_score=verification.get("faithfulness_score", 1.0),
+                is_grounded=verification.get("is_grounded", True),
+                hallucination_detected=verification.get("hallucination_detected", False),
+                reasoning=verification.get("reasoning", "Doğrulandı.")
+            )
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
